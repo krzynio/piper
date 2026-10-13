@@ -4,6 +4,8 @@ Piper (VITS) wielogłosowy plus warstwa, która naprawia to, czego eSpeak-pl nie
 robi dobrze. Jeden `pip install`, model w środku, bez pobierania czegokolwiek
 przy pierwszym uruchomieniu.
 
+Przykłady do posłuchania, dziesięć zdań każdym głosem: [examples/](examples/).
+
 ## Instalacja
 
 Model `pl_multi.onnx` (128 MB) jest za duży na gita, więc przed instalacją trzeba
