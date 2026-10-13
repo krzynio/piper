@@ -1,0 +1,4 @@
+dist/
+__pycache__/
+# Model (128 MB) przekracza limit GitHuba, patrz MODEL.md
+src/pltts/models/*.onnx
