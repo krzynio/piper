@@ -14,6 +14,7 @@ from multiprocessing import JoinableQueue, Process, Queue
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
+from piper_train import pl_trz_fix
 from piper_phonemize import (
     phonemize_espeak,
     phonemize_codepoints,
@@ -300,6 +301,15 @@ def phonemize_batch_espeak(
 
                     _LOGGER.debug(utt)
                     all_phonemes = phonemize_espeak(casing(utt.text), args.language)
+
+                    if args.language.startswith("pl"):
+                        # eSpeak-pl merges <trz>/<cz> and <drz>/<dż> into the
+                        # same phonemes, so "trzydzieści" trains as
+                        # "czydzieści". Restore the distinction using the
+                        # source spelling. See pl_trz_fix for the rationale.
+                        all_phonemes = pl_trz_fix.fix_all(
+                            all_phonemes, casing(utt.text)
+                        )
 
                     # Flatten
                     utt.phonemes = [
