@@ -28,11 +28,12 @@ pltts "Dzień dobry, z tej strony biuro obsługi klienta." -v all
 
 ## Czego nie ma w repo
 
-Za duże na GitHuba (limit 100 MB na plik), leżą na dysku:
+Za duże na GitHuba (limit 100 MB na plik). Model ONNX jest publicznie na Hugging
+Face, reszta leży tylko na dysku:
 
 | plik | gdzie |
 |---|---|
-| `pl_multi.onnx` (128 MB) | `/workspace/multi-release/` i `/workspace/pltts/src/pltts/models/` |
+| `pl_multi.onnx` (128 MB) | [Folx/piper-tts-pl-multi](https://huggingface.co/Folx/piper-tts-pl-multi) na Hugging Face; lokalnie `/workspace/multi-release/` i `/workspace/pltts/src/pltts/models/` |
 | `pl_multi-e15.ckpt` (1,08 GB) | `/workspace/multi-release/` |
 | snapshoty e0, e5, e10, e15 | `/workspace/piper-multi-out/kept/` |
 | wheel `pltts-0.1.1` z modelem w środku | `/workspace/pltts/dist/` |

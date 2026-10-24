@@ -8,14 +8,17 @@ Przykłady do posłuchania, dziesięć zdań każdym głosem: [examples/](exampl
 
 ## Instalacja
 
-Model `pl_multi.onnx` (128 MB) jest za duży na gita, więc przed instalacją trzeba
-go wgrać do paczki. Bez niego `pip install` kończy się błędem. To celowe, żeby nie
-powstała paczka, która nie umie mówić.
+Model `pl_multi.onnx` (128 MB) jest za duży na gita, więc leży na Hugging Face:
+[Folx/piper-tts-pl-multi](https://huggingface.co/Folx/piper-tts-pl-multi). Przed
+instalacją trzeba go pobrać do `src/pltts/models/`, obok `pl_multi.onnx.json`,
+który jest już w repo. Bez modelu `pip install` kończy się błędem. To celowe, żeby
+nie powstała paczka, która nie umie mówić.
 
 ```sh
-git clone git@github.com:krzynio/piper.git
+git clone -b pl-multi https://github.com/krzynio/piper.git
 cd piper/pltts
-cp /workspace/multi-release/pl_multi.onnx src/pltts/models/   # na innej maszynie: scp z serwera
+curl -L -o src/pltts/models/pl_multi.onnx \
+  https://huggingface.co/Folx/piper-tts-pl-multi/resolve/main/pl_multi.onnx
 python -m venv .venv && . .venv/bin/activate
 pip install .
 ```
