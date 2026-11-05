@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <title>pltts</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/opus-decoder@0.7.7/dist/opus-decoder.min.js"></script>
+  <style>
+    :root {
+      --ink: #14181f;
+      --ink-soft: #3a4250;
+      --muted: #6b7380;
+      --line: #d8dde6;
+      --paper: #f3f5f8;
+      --panel: #ffffff;
+      --accent: #0d7a6f;
+      --accent-hover: #0a635a;
+      --danger: #b42318;
+      --ok: #1a7f4b;
+      --warn: #9a6700;
+      --field: #eef1f5;
+      --radius: 10px;
+      --font: "Instrument Sans", system-ui, sans-serif;
+      --display: "Instrument Serif", Georgia, serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; }
+    body {
+      font: 15px/1.45 var(--font);
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #e8f3f1 0%, transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, #e7ebf4 0%, transparent 50%),
+        var(--paper);
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .shell {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3rem;
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .brand {
+      font-family: var(--display);
+      font-size: clamp(2.4rem, 6vw, 3.4rem);
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    .brand span { color: var(--accent); }
+    .status {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 0.28rem 0.55rem;
+      border-radius: 6px;
+    }
+    .chip i {
+      width: 0.45rem; height: 0.45rem; border-radius: 50%;
+      background: #c5cad3; display: inline-block;
+    }
+    .chip.ok i { background: var(--ok); }
+    .chip.bad i { background: var(--danger); }
+
+    .stage {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 1.15rem 1.15rem 1rem;
+      box-shadow: 0 1px 0 rgba(20, 24, 31, 0.04);
+    }
+    .stage-top {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+      align-items: end;
+      margin-bottom: 0.75rem;
+    }
+    @media (max-width: 560px) {
+      .stage-top { grid-template-columns: 1fr; }
+    }
+    label.field {
+      display: grid;
+      gap: 0.3rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    select, input[type="text"], input[type="password"], input[type="number"], textarea {
+      width: 100%;
+      font: 500 0.95rem/1.4 var(--font);
+      color: var(--ink);
+      background: var(--field);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+      outline: none;
+      transition: border-color .15s, background .15s;
+    }
+    select:focus, input:focus, textarea:focus {
+      border-color: var(--accent);
+      background: #fff;
+    }
+    textarea {
+      min-height: 150px;
+      resize: vertical;
+      font-size: 1.02rem;
+      line-height: 1.5;
+      letter-spacing: -0.01em;
+    }
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.85rem;
+    }
+    button {
+      font: 600 0.92rem/1 var(--font);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 0.78rem 1.05rem;
+      cursor: pointer;
+      transition: background .12s, transform .08s, opacity .12s;
+    }
+    button:active:not(:disabled) { transform: translateY(1px); }
+    button:disabled { opacity: 0.38; cursor: not-allowed; }
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+      min-width: 8.5rem;
+    }
+    button.primary:hover:not(:disabled) { background: var(--accent-hover); }
+    button.danger {
+      background: #fff;
+      color: var(--danger);
+      border-color: #efc4bf;
+    }
+    button.ghost {
+      background: transparent;
+      color: var(--ink-soft);
+      border-color: var(--line);
+    }
+    button.ghost:hover:not(:disabled) { background: var(--field); }
+
+    .meters {
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      margin-top: 0.95rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--line);
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .meters b {
+      color: var(--ink);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    details.settings {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.15rem 0.9rem;
+    }
+    details.settings > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 0.85rem 0;
+      font-weight: 600;
+      color: var(--ink-soft);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+    details.settings > summary::-webkit-details-marker { display: none; }
+    details.settings > summary::after {
+      content: "▾";
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    details.settings[open] > summary::after { content: "▴"; }
+    .settings-body {
+      display: grid;
+      gap: 0.85rem;
+      padding-bottom: 1rem;
+      border-top: 1px solid var(--line);
+      padding-top: 0.85rem;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.65rem;
+    }
+    @media (max-width: 560px) {
+      .grid-3 { grid-template-columns: 1fr; }
+    }
+    .toggles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.55rem;
+    }
+    @media (max-width: 560px) {
+      .toggles { grid-template-columns: 1fr; }
+    }
+    .toggle {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      padding: 0.7rem 0.75rem;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--field);
+      cursor: pointer;
+    }
+    .toggle input {
+      width: 1.05rem;
+      height: 1.05rem;
+      margin-top: 0.1rem;
+      accent-color: var(--accent);
+      flex: 0 0 auto;
+    }
+    .toggle .t-title { font-weight: 600; color: var(--ink); font-size: 0.9rem; text-transform: none; letter-spacing: 0; }
+    .toggle .t-sub { color: var(--muted); font-size: 0.78rem; font-weight: 400; margin-top: 0.1rem; }
+    .token-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 0.5rem;
+      align-items: end;
+    }
+    @media (max-width: 560px) {
+      .token-row { grid-template-columns: 1fr; }
+    }
+    .hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .hint code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.78rem;
+      background: var(--field);
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+    }
+
+    details.logbox {
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #11151c;
+      color: #c9d0db;
+      overflow: hidden;
+    }
+    details.logbox > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 0.75rem 0.9rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #9aa3b2;
+      user-select: none;
+    }
+    details.logbox > summary::-webkit-details-marker { display: none; }
+    pre.log {
+      margin: 0;
+      padding: 0 0.9rem 0.9rem;
+      font: 0.75rem/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+      max-height: 180px;
+      overflow: auto;
+    }
+    .log .ok { color: #6dce95; }
+    .log .bad { color: #f08b80; }
+    .log .warn { color: #e0b34d; }
+    .log .muted { color: #7c8696; }
+    .log .info { color: #7ec8c0; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="brand-row">
+      <div class="brand">pltts<span>.</span></div>
+      <div class="status">
+        <span class="chip" id="hStatus"><i></i><span id="hStatusText">…</span></span>
+        <span class="chip" id="wsStatus"><i></i><span id="wsStatusText">WS</span></span>
+        <a class="hint" href="/docs">API docs</a>
+      </div>
+    </div>
+
+    <section class="stage">
+      <div class="stage-top">
+        <label class="field">Głos
+          <select id="voice"></select>
+        </label>
+      </div>
+
+      <label class="field">Tekst
+        <textarea id="text">Dzień dobry, mówi Kasia z biura obsługi klienta. W czym mogę pomóc? Może umówimy się na przyszły tydzień, bo w tym już nie dam rady?</textarea>
+      </label>
+
+      <div class="actions">
+        <button class="primary" id="speakBtn" disabled type="button">Speak</button>
+        <button class="danger" id="stopBtn" disabled type="button">Stop</button>
+        <button class="ghost" id="downloadWavBtn" disabled type="button">Pobierz WAV</button>
+      </div>
+
+      <div class="meters">
+        <span>TTFA <b id="ttfa">–</b></span>
+        <span>First byte <b id="ttfb">–</b></span>
+        <span>Frames <b id="frames">0</b></span>
+        <span>Duration <b id="genDur">–</b></span>
+      </div>
+    </section>
+
+    <details class="settings">
+      <summary>Ustawienia</summary>
+      <div class="settings-body">
+        <div class="grid-3">
+          <label class="field">Noise scale
+            <input id="noiseScale" type="number" step="0.05" min="0" max="2" value="0.667" title="zmienność barwy i szczegółów" />
+          </label>
+          <label class="field">Noise-w scale
+            <input id="noiseW" type="number" step="0.05" min="0" max="2" value="0.8" title="zmienność rytmu i intonacji" />
+          </label>
+          <label class="field">Length scale
+            <input id="lengthScale" type="number" step="0.05" min="0.3" max="3" value="1.0" title="powyżej 1 wolniej" />
+          </label>
+        </div>
+        <p class="hint">Domyślnie 0,667 / 0,8 / 1,0. Mniejszy noise-w daje równiejszy rytm, większy length-scale wolniejsze tempo.</p>
+        <div class="grid-3" style="margin-top:0.5rem">
+          <label class="field">&nbsp;
+            <button class="ghost" id="connectBtn" type="button" style="width:100%">Reconnect WS</button>
+          </label>
+        </div>
+
+        <div class="token-row">
+          <label class="field">API token
+            <input id="token" type="password" placeholder="API_TOKEN" autocomplete="off" />
+          </label>
+          <button class="ghost" id="saveCfg" type="button">Zapisz</button>
+        </div>
+        <p class="hint">Serwer: <code id="serverUrl"></code></p>
+      </div>
+    </details>
+
+    <details class="logbox">
+      <summary>Log</summary>
+      <pre class="log" id="log"></pre>
+    </details>
+  </div>
+
+<script>
+const SR = 24000;
+const $ = (id) => document.getElementById(id);
+const logEl = $("log");
+const logLine = (msg, cls = "info") => {
+  const t = new Date().toISOString().slice(11, 23);
+  logEl.innerHTML += `<div><span class="muted">${t}</span> <span class="${cls}">${msg}</span></div>`;
+  logEl.scrollTop = logEl.scrollHeight;
+};
+$("serverUrl").textContent = location.origin;
+
+function setPill(id, cls, text) {
+  const el = $(id);
+  el.className = "chip " + cls;
+  el.querySelector("span:last-child").textContent = text;
+}
+
+function token() {
+  return ($("token").value || "").trim();
+}
+
+$("token").value = localStorage.getItem("pltts_token") || "";
+$("saveCfg").onclick = () => {
+  localStorage.setItem("pltts_token", token());
+  logLine("token saved", "ok");
+  connectWS();
+};
+
+async function refreshHealth() {
+  try {
+    const r = await fetch("/health");
+    const j = await r.json();
+    setPill("hStatus", j.ok ? "ok" : "bad", j.ok ? `ok · cpu · ${j.lanes} lanes` : "down");
+  } catch {
+    setPill("hStatus", "bad", "offline");
+  }
+}
+refreshHealth();
+setInterval(refreshHealth, 10000);
+
+async function loadVoices() {
+  const sel = $("voice");
+  sel.innerHTML = "";
+  try {
+    const r = await fetch("/voices");
+    const j = await r.json();
+    for (const v of j.voices) {
+      const opt = document.createElement("option");
+      opt.value = v.voice;
+      opt.textContent = v.name || v.voice;
+      if (v.voice === (j.default_voice || "F3")) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  } catch (e) {
+    ["F3", "weronika", "F1", "M1"].forEach((v) => {
+      const opt = document.createElement("option");
+      opt.value = v; opt.textContent = v; sel.appendChild(opt);
+    });
+    logLine("voices fallback: " + e.message, "warn");
+  }
+}
+loadVoices();
+
+let audioCtx, opusDecoder, opusReady = false, gainNode = null;
+let activeSources = new Set();
+let frameBuf = new Uint8Array(0);
+let scheduledTime = 0;
+let framesDecoded = 0;
+let firstFrameAt = 0;
+let speakStartedAt = 0;
+let recordedChunks = [];
+let recordedSamplesTotal = 0;
+let stopWatcher = null;
+let isPlaying = false;
+
+async function ensureAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: SR });
+    gainNode = audioCtx.createGain();
+    gainNode.connect(audioCtx.destination);
+  }
+  if (audioCtx.state === "suspended") await audioCtx.resume();
+}
+async function ensureOpus() {
+  if (opusReady) return;
+  const Cls = window["opus-decoder"]?.OpusDecoder;
+  if (!Cls) { logLine("opus-decoder failed to load", "bad"); return; }
+  opusDecoder = new Cls({ channels: 1, sampleRate: SR });
+  await opusDecoder.ready;
+  opusReady = true;
+}
+
+function scheduleFloat32(samples) {
+  const buf = audioCtx.createBuffer(1, samples.length, SR);
+  buf.copyToChannel(samples, 0);
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  src.connect(gainNode);
+  const playAt = Math.max(audioCtx.currentTime + 0.01, scheduledTime);
+  src.start(playAt);
+  scheduledTime = playAt + buf.duration;
+  activeSources.add(src);
+  src.onended = () => activeSources.delete(src);
+  recordedChunks.push(samples.slice());
+  recordedSamplesTotal += samples.length;
+}
+
+function killPlayback() {
+  for (const s of activeSources) { try { s.stop(); } catch (_) {} }
+  activeSources.clear();
+  scheduledTime = 0;
+  if (audioCtx && gainNode) {
+    try {
+      gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+      gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+      gainNode.gain.setValueAtTime(1, audioCtx.currentTime + 0.02);
+    } catch (_) {}
+  }
+}
+
+async function feedOpusBytes(bytes) {
+  const merged = new Uint8Array(frameBuf.length + bytes.length);
+  merged.set(frameBuf); merged.set(bytes, frameBuf.length);
+  frameBuf = merged;
+  while (frameBuf.length >= 2) {
+    const len = (frameBuf[0] << 8) | frameBuf[1];
+    if (frameBuf.length < 2 + len) break;
+    const packet = frameBuf.slice(2, 2 + len);
+    frameBuf = frameBuf.slice(2 + len);
+    try {
+      const r = await opusDecoder.decodeFrame(packet);
+      if (r?.channelData?.[0]) {
+        if (!firstFrameAt) {
+          firstFrameAt = performance.now();
+          $("ttfb").textContent = (firstFrameAt - speakStartedAt).toFixed(0) + " ms";
+        }
+        scheduleFloat32(r.channelData[0]);
+        framesDecoded++;
+        $("frames").textContent = String(framesDecoded);
+      }
+    } catch (e) { logLine("opus decode: " + e.message, "warn"); }
+  }
+}
+
+function resetPlayback() {
+  killPlayback();
+  if (stopWatcher) { clearInterval(stopWatcher); stopWatcher = null; }
+  frameBuf = new Uint8Array(0);
+  scheduledTime = 0; isPlaying = false; framesDecoded = 0; firstFrameAt = 0;
+  recordedChunks = []; recordedSamplesTotal = 0;
+  $("downloadWavBtn").disabled = true;
+  $("frames").textContent = "0";
+  $("ttfa").textContent = "–";
+  $("ttfb").textContent = "–";
+  $("genDur").textContent = "–";
+}
+
+function buildWavBlob() {
+  if (!recordedSamplesTotal) return null;
+  const dataBytes = recordedSamplesTotal * 2;
+  const bytes = new ArrayBuffer(44 + dataBytes);
+  const view = new DataView(bytes);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) view.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, "RIFF"); view.setUint32(4, 36 + dataBytes, true); w(8, "WAVE"); w(12, "fmt ");
+  view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+  view.setUint32(24, SR, true); view.setUint32(28, SR * 2, true); view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true); w(36, "data"); view.setUint32(40, dataBytes, true);
+  let off = 44;
+  for (const chunk of recordedChunks) {
+    for (let i = 0; i < chunk.length; i++) {
+      const s = Math.max(-1, Math.min(1, chunk[i]));
+      view.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+      off += 2;
+    }
+  }
+  return new Blob([bytes], { type: "audio/wav" });
+}
+
+let ws = null;
+function paramsQS() {
+  return new URLSearchParams({
+    noise_scale: $("noiseScale").value || "0.667",
+    noise_w_scale: $("noiseW").value || "0.8",
+    length_scale: $("lengthScale").value || "1.0",
+  }).toString();
+}
+function wsUrl() {
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  const t = encodeURIComponent(token());
+  return `${proto}//${location.host}/v1/audio/ws?token=${t}&${paramsQS()}`;
+}
+
+function connectWS() {
+  if (ws && ws.readyState <= 1) try { ws.close(); } catch (_) {}
+  ws = new WebSocket(wsUrl());
+  ws.binaryType = "arraybuffer";
+  ws.onopen = () => {
+    setPill("wsStatus", "ok", "connected");
+    $("speakBtn").disabled = false;
+    logLine("WS open", "ok");
+  };
+  ws.onclose = () => {
+    setPill("wsStatus", "bad", "closed");
+    $("speakBtn").disabled = true;
+    $("stopBtn").disabled = true;
+    logLine("WS closed", "muted");
+  };
+  ws.onerror = () => logLine("WS error", "bad");
+  ws.onmessage = async (e) => {
+    if (typeof e.data === "string") {
+      let msg; try { msg = JSON.parse(e.data); } catch { return; }
+      switch (msg.type) {
+        case "session":
+          logLine(`session noise=${msg.noise_scale} noise_w=${msg.noise_w_scale} length=${msg.length_scale}`, "muted");
+          break;
+        case "speech_started":
+          logLine(`speech #${msg.speech_id}`, "info");
+          break;
+        case "ttfa":
+          $("ttfa").textContent = msg.ms + " ms" + "";
+          break;
+        case "generation_complete":
+          $("genDur").textContent = Number(msg.duration_seconds).toFixed(2) + " s";
+          logLine(`done ${msg.chunks} frames`, "ok");
+          armStopWatcher();
+          if (recordedSamplesTotal > 0) $("downloadWavBtn").disabled = false;
+          break;
+        case "stopped":
+          logLine("stopped", "warn");
+          $("stopBtn").disabled = true;
+          isPlaying = false;
+          break;
+        case "error":
+          logLine(msg.message, "bad");
+          $("stopBtn").disabled = true;
+          isPlaying = false;
+          break;
+      }
+    } else {
+      await feedOpusBytes(new Uint8Array(e.data));
+    }
+  };
+}
+$("connectBtn").onclick = connectWS;
+connectWS();
+
+function armStopWatcher() {
+  if (stopWatcher) clearInterval(stopWatcher);
+  $("stopBtn").disabled = false;
+  stopWatcher = setInterval(() => {
+    if (!audioCtx || (scheduledTime - audioCtx.currentTime) <= 0.02) {
+      clearInterval(stopWatcher); stopWatcher = null;
+      $("stopBtn").disabled = true;
+      isPlaying = false;
+    }
+  }, 100);
+}
+
+$("speakBtn").onclick = async () => {
+  if (!ws || ws.readyState !== 1) { logLine("WS not open — check token", "bad"); return; }
+  await ensureAudio(); await ensureOpus();
+  resetPlayback();
+  isPlaying = true;
+  speakStartedAt = performance.now();
+  const payload = {
+    type: "speak",
+    input: $("text").value,
+    voice: $("voice").value,
+    noise_scale: Number($("noiseScale").value),
+    noise_w_scale: Number($("noiseW").value),
+    length_scale: Number($("lengthScale").value),
+  };
+  ws.send(JSON.stringify(payload));
+  $("stopBtn").disabled = false;
+};
+
+$("stopBtn").onclick = () => {
+  killPlayback();
+  if (ws && ws.readyState === 1 && isPlaying) ws.send(JSON.stringify({ type: "stop" }));
+  if (stopWatcher) { clearInterval(stopWatcher); stopWatcher = null; }
+  $("stopBtn").disabled = true;
+  isPlaying = false;
+};
+
+$("downloadWavBtn").onclick = () => {
+  const blob = buildWavBlob();
+  if (!blob) return;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `pltts_${$("voice").value}_${Date.now()}.wav`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 500);
+};
+
+</script>
+</body>
+</html>
